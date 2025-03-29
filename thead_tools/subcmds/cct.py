@@ -96,8 +96,15 @@ class CCT:
 
         try:
             c = struct.pack('!BBH', cmd, param, len(data)) + data
-            self.write(c)
-            v = self.read(4)
+            while True:
+                self.write(c)
+                v = self.read(4)
+                if v.startswith(b'brom'):
+                    self.write(c)
+                    # Read until the end of the line to bypass the unwanted bytes
+                    self.read(8) # Length of b'_ver 8\r\n'
+                else:
+                    break
             if len(v) == 4:
                 data = struct.unpack('!BBH', v)
                 payload = self.read(data[2])
